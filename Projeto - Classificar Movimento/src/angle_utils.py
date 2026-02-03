@@ -16,17 +16,10 @@ def _dot(u: Point2D, v: Point2D) -> float:
 
 # Tamanho (norma) do vetor
 def _norm(u: Point2D) -> float:
-    # ||u|| = sqrt(u.x^2 + u.y^2)
     return sqrt(u.x * u.x + u.y * u.y)
 
 # Cálculo do ângulo entre três pontos A, B, C (ângulo em B)
-def angle_3points(
-    a: Point2D,
-    b: Point2D,
-    c: Point2D,
-    *,
-    debug: bool = False
-) -> Optional[float]:
+def angle_3points(a: Point2D, b: Point2D, c: Point2D,) -> Optional[float]:
     """
     Calcula o ângulo ABC (em graus), isto é, o ângulo no ponto B
     formado pelos segmentos BA e BC.
@@ -57,7 +50,7 @@ def angle_3points(
     denom = nu * nv
     cos_theta = d / denom
 
-    # Clamp para evitar erro numérico do acos (ex.: 1.0000000002)
+    # Corrige possíveis erros numéricos que deixem cos_theta fora do intervalo [-1, 1]
     if cos_theta > 1:
         cos_theta = 1.0
     elif cos_theta < -1:

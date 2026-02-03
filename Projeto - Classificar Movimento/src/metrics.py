@@ -17,10 +17,8 @@ Observação:
 """
 
 from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
-
 from angle_utils import Point2D, angle_3points, angular_variation
 
 
@@ -30,7 +28,8 @@ from angle_utils import Point2D, angle_3points, angular_variation
 
 # Um frame pode ter alguns landmarks (ombro, cotovelo, punho, quadril, joelho, etc.)
 # Em cada frame, alguns podem faltar (pose falhou) -> valor None.
-LandmarkFrame = Dict[str, Optional[Point2D]]  # ex: {"shoulder": Point2D(...), "elbow": ..., ...}
+# ex: {"shoulder": Point2D(...), "elbow": ..., ...}
+LandmarkFrame = Dict[str, Optional[Point2D]]
 
 
 @dataclass
@@ -38,7 +37,8 @@ class SeriesResult:
     """Séries temporais calculadas por frame."""
     elbow_angle_deg: List[Optional[float]]
     trunk_angle_deg: List[Optional[float]]
-    wrist_to_shoulder_dist: List[Optional[float]]  # útil para detectar repetições
+    # útil para detectar repetições
+    wrist_to_shoulder_dist: List[Optional[float]]
 
 
 @dataclass
@@ -67,10 +67,6 @@ class RepMetrics:
     wrist_shoulder_max_dist: Optional[float]
     wrist_shoulder_range: Optional[float]
 
-
-# -----------------------------
-# Funções utilitárias
-# -----------------------------
 
 def moving_average(values: List[Optional[float]], window: int = 5) -> List[Optional[float]]:
     """
@@ -121,15 +117,7 @@ def _min_max_amp(values: List[float]) -> Tuple[Optional[float], Optional[float],
     return mn, mx, amp
 
 
-# -----------------------------
-# Extração de séries por frame
-# -----------------------------
-
-def compute_series_from_landmarks(
-    frames: List[LandmarkFrame],
-    *,
-    smooth_window: int = 5,
-) -> SeriesResult:
+def compute_series_from_landmarks(frames: List[LandmarkFrame], *, smooth_window: int = 5) -> SeriesResult:
     """
     Recebe uma lista de frames com landmarks e calcula séries por frame:
     - ângulo do cotovelo: angle(shoulder, elbow, wrist)
@@ -175,10 +163,6 @@ def compute_series_from_landmarks(
     )
 
 
-# -----------------------------
-# Métricas globais (vídeo inteiro)
-# -----------------------------
-
 def compute_global_metrics(series: SeriesResult) -> Dict[str, Optional[float]]:
     """
     Calcula métricas para o vídeo todo (sem separar em repetições).
@@ -212,16 +196,7 @@ def compute_global_metrics(series: SeriesResult) -> Dict[str, Optional[float]]:
     }
 
 
-# -----------------------------
-# Detecção simples de repetições (opcional, versão 2)
-# -----------------------------
-
-def detect_reps_by_wrist_shoulder_distance(
-    wrist_shoulder_dist: List[Optional[float]],
-    *,
-    min_frames_per_rep: int = 15,
-    prominence: float = 0.02,
-) -> List[RepSegment]:
+def detect_reps_by_wrist_shoulder_distance(wrist_shoulder_dist: List[Optional[float]], *, min_frames_per_rep: int = 15, prominence: float = 0.02) -> List[RepSegment]:
     """
     Detecta repetições usando a curva de distância punho->ombro.
 
@@ -269,14 +244,7 @@ def detect_reps_by_wrist_shoulder_distance(
     return reps
 
 
-# -----------------------------
-# Métricas por repetição
-# -----------------------------
-
-def compute_rep_metrics(
-    series: SeriesResult,
-    reps: List[RepSegment],
-) -> List[RepMetrics]:
+def compute_rep_metrics(series: SeriesResult, reps: List[RepSegment]) -> List[RepMetrics]:
     """
     Calcula métricas para cada repetição detectada.
     """
@@ -285,7 +253,8 @@ def compute_rep_metrics(
     for idx, seg in enumerate(reps):
         elbow_seg = _slice_valid(series.elbow_angle_deg, seg.start, seg.end)
         trunk_seg = _slice_valid(series.trunk_angle_deg, seg.start, seg.end)
-        ws_seg = _slice_valid(series.wrist_to_shoulder_dist, seg.start, seg.end)
+        ws_seg = _slice_valid(
+            series.wrist_to_shoulder_dist, seg.start, seg.end)
 
         e_min, e_max, e_amp = _min_max_amp(elbow_seg)
         t_min, t_max, t_var = _min_max_amp(trunk_seg)
