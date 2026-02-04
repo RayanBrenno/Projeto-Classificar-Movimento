@@ -1,8 +1,6 @@
-# src/angle_utils.py
-from __future__ import annotations
 from dataclasses import dataclass
 from math import acos, degrees, sqrt
-from typing import Iterable, List, Tuple, Optional
+from typing import Iterable, Optional
 
 
 @dataclass(frozen=True)
@@ -62,7 +60,7 @@ def angle_3points(a: Point2D, b: Point2D, c: Point2D,) -> Optional[float]:
     return theta_deg
 
 
-def angular_variation(angles: Iterable[float], *, debug: bool = False) -> float:
+def angular_variation(angles: Iterable[float]) -> float:
     """
     Retorna a variação angular: max(angles) - min(angles).
 

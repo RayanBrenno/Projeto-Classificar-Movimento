@@ -19,7 +19,7 @@ Observação:
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
-from angle_utils import Point2D, angle_3points, angular_variation
+from angle_utils import Point2D, angle_3points
 
 
 # -----------------------------
@@ -164,15 +164,6 @@ def compute_series_from_landmarks(frames: List[LandmarkFrame], *, smooth_window:
 
 
 def compute_global_metrics(series: SeriesResult) -> Dict[str, Optional[float]]:
-    """
-    Calcula métricas para o vídeo todo (sem separar em repetições).
-    Bom para o MVP inicial.
-
-    Retorna:
-    - elbow_min, elbow_max, elbow_amplitude
-    - trunk_min, trunk_max, trunk_variation
-    - wrist_shoulder_min_dist, wrist_shoulder_max_dist, wrist_shoulder_range
-    """
     elbow_vals = [v for v in series.elbow_angle_deg if v is not None]
     trunk_vals = [v for v in series.trunk_angle_deg if v is not None]
     ws_vals = [v for v in series.wrist_to_shoulder_dist if v is not None]
@@ -180,6 +171,16 @@ def compute_global_metrics(series: SeriesResult) -> Dict[str, Optional[float]]:
     elbow_min, elbow_max, elbow_amp = _min_max_amp(elbow_vals)
     trunk_min, trunk_max, trunk_var = _min_max_amp(trunk_vals)
     ws_min, ws_max, ws_range = _min_max_amp(ws_vals)
+
+    # média do tronco (postura)
+    trunk_mean = (sum(trunk_vals) / len(trunk_vals)) if trunk_vals else None
+
+    # desvio padrão do tronco (estabilidade mais robusta que só min/max)
+    trunk_std = None
+    if trunk_vals:
+        m = trunk_mean
+        trunk_std = (sum((x - m) ** 2 for x in trunk_vals) /
+                     len(trunk_vals)) ** 0.5
 
     return {
         "elbow_min": elbow_min,
@@ -189,6 +190,8 @@ def compute_global_metrics(series: SeriesResult) -> Dict[str, Optional[float]]:
         "trunk_min": trunk_min,
         "trunk_max": trunk_max,
         "trunk_variation": trunk_var,
+        "trunk_mean": trunk_mean,
+        "trunk_std": trunk_std,
 
         "wrist_shoulder_min_dist": ws_min,
         "wrist_shoulder_max_dist": ws_max,
