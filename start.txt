@@ -1,0 +1,11 @@
+Instalar python 3.11 -> https://www.python.org/downloads/windows/
+
+Teste -> py -3.11 --version
+
+Criar a venv na raiz -> cd Projeto - Classificar Movimento
+
+Cria -> py -3.11 -m venv .venv
+
+Ativa -> .venv\Scripts\activate
+
+Roda -> python src/main.py
