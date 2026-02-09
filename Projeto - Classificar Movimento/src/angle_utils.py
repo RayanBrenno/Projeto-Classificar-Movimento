@@ -19,17 +19,11 @@ def _norm(u: Point2D) -> float:
 # Cálculo do ângulo entre três pontos A, B, C (ângulo em B)
 def angle_3points(a: Point2D, b: Point2D, c: Point2D,) -> Optional[float]:
     """
-    Calcula o ângulo ABC (em graus), isto é, o ângulo no ponto B
-    formado pelos segmentos BA e BC.
-
     Fórmula:
         u = A - B
         v = C - B
         cos(theta) = (u·v) / (||u|| ||v||)
         theta = arccos(cos(theta)) em graus
-
-    Retorna:
-        float (graus) ou None se não for possível (ex.: pontos coincidentes gerando vetor zero).
     """
     # Vetores u = BA e v = BC, mas usando A-B e C-B
     u = Point2D(a.x - b.x, a.y - b.y)
@@ -44,7 +38,6 @@ def angle_3points(a: Point2D, b: Point2D, c: Point2D,) -> Optional[float]:
 
     d = _dot(u, v)
 
-    # cos(theta) = d / (nu*nv)
     denom = nu * nv
     cos_theta = d / denom
 
@@ -59,17 +52,8 @@ def angle_3points(a: Point2D, b: Point2D, c: Point2D,) -> Optional[float]:
 
     return theta_deg
 
-
+    # Calcula a variação angular (amplitude) de uma série de ângulos
 def angular_variation(angles: Iterable[float]) -> float:
-    """
-    Retorna a variação angular: max(angles) - min(angles).
-
-    Útil para:
-      - amplitude do cotovelo
-      - quanto o tronco balançou
-
-    Se a lista estiver vazia, lança ValueError.
-    """
     angles_list = list(angles)
     if not angles_list:
         raise ValueError("Lista de ângulos vazia. Não é possível calcular variação.")

@@ -1,34 +1,9 @@
-
-"""
-Métricas para avaliação do exercício a partir de landmarks 2D (pose).
-
-Este módulo NÃO lê vídeo e NÃO roda MediaPipe.
-Ele recebe séries temporais (por frame) de pontos (x,y) e devolve:
-- ângulos por frame (cotovelo, tronco)
-- amplitudes e variações
-- segmentação simples em repetições (opcional)
-- métricas por repetição
-
-Dependências internas:
-- src/angle_utils.py  (Point2D, angle_3points, angular_variation)
-
-Observação:
-- Para vídeo lateral, cotovelo e tronco são as métricas mais confiáveis.
-"""
-
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 from angle_utils import Point2D, angle_3points
 
 
-# -----------------------------
-# Tipos de dados
-# -----------------------------
-
-# Um frame pode ter alguns landmarks (ombro, cotovelo, punho, quadril, joelho, etc.)
-# Em cada frame, alguns podem faltar (pose falhou) -> valor None.
-# ex: {"shoulder": Point2D(...), "elbow": ..., ...}
 LandmarkFrame = Dict[str, Optional[Point2D]]
 
 
@@ -68,16 +43,9 @@ class RepMetrics:
     wrist_shoulder_range: Optional[float]
 
 
+    # Suavização de séries temporais (média móvel simples), Mediapipe pode tremer um pouco. Isso ajuda a reduzir ruído e melhorar métricas. Mantém None quando não há dados suficientes.
 def moving_average(values: List[Optional[float]], window: int = 5) -> List[Optional[float]]:
-    """
-    Suaviza uma série com média móvel simples.
 
-    - Mantém None quando não há dados suficientes.
-    - Para cada posição i, calcula média dos valores válidos dentro da janela.
-
-    Por que isso ajuda?
-    - MediaPipe/pose pode tremer um pouco. A suavização reduz ruído e melhora métricas.
-    """
     if window <= 1:
         return values[:]
 
@@ -103,8 +71,8 @@ def euclidean_dist(a: Point2D, b: Point2D) -> float:
     return (dx * dx + dy * dy) ** 0.5
 
 
+    # Extrai valores válidos (não None) no intervalo [start, end].
 def _slice_valid(values: List[Optional[float]], start: int, end: int) -> List[float]:
-    """Extrai valores válidos (não None) no intervalo [start, end]."""
     return [v for v in values[start:end + 1] if v is not None]
 
 
@@ -123,8 +91,6 @@ def compute_series_from_landmarks(frames: List[LandmarkFrame], *, smooth_window:
     - ângulo do cotovelo: angle(shoulder, elbow, wrist)
     - ângulo do tronco:   angle(shoulder, hip, knee)
     - distância punho->ombro: útil para detectar repetição na remada
-
-    Se algum ponto necessário faltar num frame, o resultado desse frame vira None.
     """
     elbow_angles: List[Optional[float]] = []
     trunk_angles: List[Optional[float]] = []
@@ -151,7 +117,7 @@ def compute_series_from_landmarks(frames: List[LandmarkFrame], *, smooth_window:
         else:
             trunk_angles.append(angle_3points(shoulder, hip, knee))
 
-    # Suavização (reduz ruído)
+    # Suavização (reduz ruído/erro)
     elbow_angles_s = moving_average(elbow_angles, window=smooth_window)
     trunk_angles_s = moving_average(trunk_angles, window=smooth_window)
     wrist_shoulder_s = moving_average(wrist_shoulder, window=smooth_window)
@@ -200,25 +166,7 @@ def compute_global_metrics(series: SeriesResult) -> Dict[str, Optional[float]]:
 
 
 def detect_reps_by_wrist_shoulder_distance(wrist_shoulder_dist: List[Optional[float]], *, min_frames_per_rep: int = 15, prominence: float = 0.02) -> List[RepSegment]:
-    """
-    Detecta repetições usando a curva de distância punho->ombro.
 
-    Intuição (remada):
-    - Quando puxa, punho aproxima do ombro -> distância diminui.
-    - Quando retorna, distância aumenta.
-    Assim, cada repetição costuma formar um "vale" (mínimo) e "picos" (máximos).
-
-    Estratégia simples (sem scipy):
-    - achar mínimos locais "fortes" (vales) com uma noção simples de proeminência
-    - criar segmentos de repetições entre picos ou entre mínimos consecutivos
-
-    Parâmetros:
-    - min_frames_per_rep: evita detectar reps minúsculas (ruído)
-    - prominence: quanto o vale precisa "descer" em relação às vizinhanças (depende do seu vídeo e normalização)
-
-    Observação:
-    - Isso é um detector simples para o MVP+. Você pode melhorar depois.
-    """
     # Converter None -> pular
     vals = wrist_shoulder_dist
 
@@ -228,7 +176,6 @@ def detect_reps_by_wrist_shoulder_distance(wrist_shoulder_dist: List[Optional[fl
         if vals[i] is None or vals[i - 1] is None or vals[i + 1] is None:
             continue
         if vals[i] < vals[i - 1] and vals[i] < vals[i + 1]:
-            # proeminência simples: diferença entre vizinhos médios e o ponto
             neighbor_avg = (vals[i - 1] + vals[i + 1]) / 2
             if (neighbor_avg - vals[i]) >= prominence:
                 minima.append(i)

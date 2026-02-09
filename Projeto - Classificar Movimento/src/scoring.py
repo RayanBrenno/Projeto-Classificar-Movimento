@@ -5,10 +5,10 @@ from typing import Dict, List, Optional
 
 @dataclass
 class ScoreResult2:
-    score_elbow: float           # 0..100
-    score_trunk: float           # 0..100
-    label_elbow: str             # ruim | medio | ok
-    label_trunk: str             # ruim | medio | ok
+    score_elbow: float
+    score_trunk: float
+    label_elbow: str
+    label_trunk: str  
     warnings_elbow: List[str]
     warnings_trunk: List[str]
     details: Dict[str, float]
@@ -146,7 +146,7 @@ def score_row_two_notes(
         score_elbow_min = _score_from_range(elbow_min, good_min, good_max, elbow_min_falloff)
         details["elbow_min"] = float(elbow_min)
 
-        # Feedbacks direcionados (do jeito que você pediu)
+        # Feedbacks direcionados
         if elbow_min < good_min:
             warnings_elbow.append(
                 "A puxada está subindo pro peito. Puxe no sentido da cintura (cotovelos indo pra trás e pra baixo)."
