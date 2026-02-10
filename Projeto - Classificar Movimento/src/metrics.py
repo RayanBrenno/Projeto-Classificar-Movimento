@@ -9,41 +9,12 @@ LandmarkFrame = Dict[str, Optional[Point2D]]
 
 @dataclass
 class SeriesResult:
-    """Séries temporais calculadas por frame."""
     elbow_angle_deg: List[Optional[float]]
     trunk_angle_deg: List[Optional[float]]
-    # útil para detectar repetições
     wrist_to_shoulder_dist: List[Optional[float]]
 
 
-@dataclass
-class RepSegment:
-    """Representa um segmento de frames [start, end] (inclusive) que forma 1 repetição."""
-    start: int
-    end: int
-
-
-@dataclass
-class RepMetrics:
-    """Métricas calculadas dentro de uma repetição."""
-    rep_index: int
-    frames: RepSegment
-
-    elbow_min: Optional[float]
-    elbow_max: Optional[float]
-    elbow_amplitude: Optional[float]
-
-    trunk_min: Optional[float]
-    trunk_max: Optional[float]
-    trunk_variation: Optional[float]
-
-    # Métrica auxiliar para remada: quanto o punho se aproximou do ombro
-    wrist_shoulder_min_dist: Optional[float]
-    wrist_shoulder_max_dist: Optional[float]
-    wrist_shoulder_range: Optional[float]
-
-
-    # Suavização de séries temporais (média móvel simples), Mediapipe pode tremer um pouco. Isso ajuda a reduzir ruído e melhorar métricas. Mantém None quando não há dados suficientes.
+# Suavização de séries temporais (média móvel simples), Mediapipe pode tremer um pouco. Isso ajuda a reduzir ruído e melhorar métricas. Mantém None quando não há dados suficientes.
 def moving_average(values: List[Optional[float]], window: int = 5) -> List[Optional[float]]:
 
     if window <= 1:
@@ -69,11 +40,6 @@ def euclidean_dist(a: Point2D, b: Point2D) -> float:
     dx = a.x - b.x
     dy = a.y - b.y
     return (dx * dx + dy * dy) ** 0.5
-
-
-    # Extrai valores válidos (não None) no intervalo [start, end].
-def _slice_valid(values: List[Optional[float]], start: int, end: int) -> List[float]:
-    return [v for v in values[start:end + 1] if v is not None]
 
 
 def _min_max_amp(values: List[float]) -> Tuple[Optional[float], Optional[float], Optional[float]]:
@@ -163,70 +129,3 @@ def compute_global_metrics(series: SeriesResult) -> Dict[str, Optional[float]]:
         "wrist_shoulder_max_dist": ws_max,
         "wrist_shoulder_range": ws_range,
     }
-
-
-def detect_reps_by_wrist_shoulder_distance(wrist_shoulder_dist: List[Optional[float]], *, min_frames_per_rep: int = 15, prominence: float = 0.02) -> List[RepSegment]:
-
-    # Converter None -> pular
-    vals = wrist_shoulder_dist
-
-    # Encontrar mínimos locais candidatos
-    minima: List[int] = []
-    for i in range(1, len(vals) - 1):
-        if vals[i] is None or vals[i - 1] is None or vals[i + 1] is None:
-            continue
-        if vals[i] < vals[i - 1] and vals[i] < vals[i + 1]:
-            neighbor_avg = (vals[i - 1] + vals[i + 1]) / 2
-            if (neighbor_avg - vals[i]) >= prominence:
-                minima.append(i)
-
-    if len(minima) < 2:
-        return []
-
-    # Transformar mínimos em segmentos: [min_k, min_{k+1}]
-    reps: List[RepSegment] = []
-    for k in range(len(minima) - 1):
-        start = minima[k]
-        end = minima[k + 1]
-        if (end - start) >= min_frames_per_rep:
-            reps.append(RepSegment(start=start, end=end))
-
-    return reps
-
-
-def compute_rep_metrics(series: SeriesResult, reps: List[RepSegment]) -> List[RepMetrics]:
-    """
-    Calcula métricas para cada repetição detectada.
-    """
-    results: List[RepMetrics] = []
-
-    for idx, seg in enumerate(reps):
-        elbow_seg = _slice_valid(series.elbow_angle_deg, seg.start, seg.end)
-        trunk_seg = _slice_valid(series.trunk_angle_deg, seg.start, seg.end)
-        ws_seg = _slice_valid(
-            series.wrist_to_shoulder_dist, seg.start, seg.end)
-
-        e_min, e_max, e_amp = _min_max_amp(elbow_seg)
-        t_min, t_max, t_var = _min_max_amp(trunk_seg)
-        ws_min, ws_max, ws_rng = _min_max_amp(ws_seg)
-
-        results.append(
-            RepMetrics(
-                rep_index=idx,
-                frames=seg,
-
-                elbow_min=e_min,
-                elbow_max=e_max,
-                elbow_amplitude=e_amp,
-
-                trunk_min=t_min,
-                trunk_max=t_max,
-                trunk_variation=t_var,
-
-                wrist_shoulder_min_dist=ws_min,
-                wrist_shoulder_max_dist=ws_max,
-                wrist_shoulder_range=ws_rng,
-            )
-        )
-
-    return results
