@@ -54,7 +54,7 @@ def score_row_two_notes(
 
     # =========================
     # COTOVELO: "assinatura" do movimento (elbow_min)
-    # Perfeito que você passou: 59.67
+    # Perfeito : 59.67
     # =========================
     elbow_min_target: float = 59.67,
     elbow_min_tol: float = 4.0,         # folga pequena (punitivo)
@@ -66,7 +66,7 @@ def score_row_two_notes(
 
     # =========================
     # TRONCO: variação (max-min)
-    # Seu "perfeito" ≈ 41.86, então bom_max precisa cobrir isso
+    # "perfeito" ≈ 41.86, então bom_max precisa cobrir isso
     # =========================
     trunk_var_good_max: float = 45.0,
     trunk_var_falloff: float = 25.0,
@@ -80,14 +80,14 @@ def score_row_two_notes(
 
     # =========================
     # TRONCO: estabilidade via std
-    # Seu "perfeito" ≈ 14.62
+    # "perfeito" ≈ 14.62
     # =========================
     trunk_std_good_max: float = 18.0,
     trunk_std_falloff: float = 20.0,
 
     # =========================
     # TRONCO: punir quando trunk_max abre demais
-    # Perfeito que você passou: 112.73
+    # Perfeito: 112.73
     # =========================
     trunk_max_target: float = 112.73,
     trunk_max_tol: float = 4.0,         # folga pequena (punitivo)

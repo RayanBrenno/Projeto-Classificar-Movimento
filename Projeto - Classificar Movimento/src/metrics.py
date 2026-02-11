@@ -35,7 +35,7 @@ def moving_average(values: List[Optional[float]], window: int = 5) -> List[Optio
 
     return out
 
-
+# Distância Euclidiana entre dois pontos 2D (linha reta)
 def euclidean_dist(a: Point2D, b: Point2D) -> float:
     dx = a.x - b.x
     dy = a.y - b.y

@@ -8,7 +8,7 @@ class Point2D:
     x: float
     y: float
 
-# Produto Escalar
+# Produto Escalar entre dois vetores u e v (u·v) = u.x * v.x + u.y * v.y
 def _dot(u: Point2D, v: Point2D) -> float:
     return u.x * v.x + u.y * v.y
 
@@ -56,7 +56,8 @@ def angle_3points(a: Point2D, b: Point2D, c: Point2D,) -> Optional[float]:
 def angular_variation(angles: Iterable[float]) -> float:
     angles_list = list(angles)
     if not angles_list:
-        raise ValueError("Lista de ângulos vazia. Não é possível calcular variação.")
+        raise ValueError(
+            "Lista de ângulos vazia. Não é possível calcular variação.")
 
     min_a = min(angles_list)
     max_a = max(angles_list)

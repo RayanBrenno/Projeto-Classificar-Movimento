@@ -75,7 +75,7 @@ def extract_landmarks_from_video(*, video_path: str, side: str = "right", visibi
         out_writer = cv2.VideoWriter(
             annotated_video_path, fourcc, fps, (width, height))
 
-    # Preparar CSV (se quiser)
+    # Preparar CSV 
     csv_file = None
     csv_writer = None
     if save_csv:
@@ -96,8 +96,7 @@ def extract_landmarks_from_video(*, video_path: str, side: str = "right", visibi
     mp_pose = mp.solutions.pose
     mp_draw = mp.solutions.drawing_utils
 
-    # Índices do MediaPipe
-    # (pontos do lado escolhido)
+    # Índices do MediaPipe - (pontos do lado escolhido)
     if side == "right":
         idx_shoulder = mp_pose.PoseLandmark.RIGHT_SHOULDER.value
         idx_elbow = mp_pose.PoseLandmark.RIGHT_ELBOW.value
