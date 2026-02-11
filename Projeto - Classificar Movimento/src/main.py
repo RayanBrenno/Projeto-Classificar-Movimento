@@ -3,16 +3,16 @@ from metrics import compute_series_from_landmarks, compute_global_metrics
 from scoring import score_row_two_notes
 
 
-video_path = "data/raw/certo.mp4"
+video_path = "data/raw/errado2.mp4"
 
 frames = extract_landmarks_from_video(
     video_path=video_path,
     side="right",
     visibility_threshold=0.5,
     save_csv=True,
-    csv_path="outputs/landmarks_certo.csv",
+    csv_path="outputs/landmarks_errado2.csv",
     save_annotated_video=True,
-    annotated_video_path="outputs/certo.mp4"
+    annotated_video_path="outputs/errado2.mp4"
 )
 
 series = compute_series_from_landmarks(frames, smooth_window=5)
@@ -40,5 +40,3 @@ else:
     print(" - Sem feedback negativo")
 
 print("=" * 60)
-print(series)
-print("MÉTRICAS GLOBAIS:", gm)
