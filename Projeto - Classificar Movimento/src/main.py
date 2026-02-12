@@ -3,16 +3,16 @@ from metrics import compute_series_from_landmarks, compute_global_metrics
 from scoring import score_row_two_notes
 
 
-video_path = "data/raw/errado2.mp4"
+video_path = "data/raw/erradoE.mp4"
 
 frames = extract_landmarks_from_video(
     video_path=video_path,
-    side="right",
+    side="left",
     visibility_threshold=0.5,
     save_csv=True,
-    csv_path="outputs/landmarks_errado2.csv",
+    csv_path="outputs/landmarks_erradoE.csv",
     save_annotated_video=True,
-    annotated_video_path="outputs/errado2.mp4"
+    annotated_video_path="outputs/erradoE.mp4"
 )
 
 series = compute_series_from_landmarks(frames, smooth_window=5)
