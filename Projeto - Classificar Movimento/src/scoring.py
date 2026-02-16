@@ -1,4 +1,3 @@
-from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
@@ -11,7 +10,6 @@ class ScoreResult2:
     label_trunk: str  
     warnings_elbow: List[str]
     warnings_trunk: List[str]
-    details: Dict[str, float]
 
 
 def _clamp(x: float, lo: float, hi: float) -> float:
@@ -94,7 +92,6 @@ def score_row_two_notes(
     trunk_max_falloff: float = 10.0,    # queda rápida se abrir demais
     trunk_w_max: float = 0.25,          # peso do trunk_max na nota do tronco
 
-    # Como juntar (postura/variação + estabilidade) antes de aplicar trunk_max
     trunk_w_posture: float = 0.65,
     trunk_w_stability: float = 0.35,
 
@@ -108,7 +105,6 @@ def score_row_two_notes(
 ) -> ScoreResult2:
     warnings_elbow: List[str] = []
     warnings_trunk: List[str] = []
-    details: Dict[str, float] = {}
 
     elbow_min = global_metrics.get("elbow_min")
     elbow_amp = global_metrics.get("elbow_amplitude")
@@ -129,7 +125,6 @@ def score_row_two_notes(
         warnings_elbow.append("Não foi possível medir a amplitude do cotovelo (pose falhou ou vídeo ruim).")
     else:
         score_elbow_amp = _score_from_range(elbow_amp, elbow_amp_good_min, elbow_amp_good_max, elbow_amp_falloff)
-        details["elbow_amplitude"] = float(elbow_amp)
 
         if elbow_amp < elbow_amp_good_min:
             warnings_elbow.append("Amplitude curta no cotovelo (puxou pouco / encurtou a puxada).")
@@ -144,7 +139,6 @@ def score_row_two_notes(
         good_min = elbow_min_target - elbow_min_tol
         good_max = elbow_min_target + elbow_min_tol
         score_elbow_min = _score_from_range(elbow_min, good_min, good_max, elbow_min_falloff)
-        details["elbow_min"] = float(elbow_min)
 
         # Feedbacks direcionados
         if elbow_min < good_min:
@@ -156,10 +150,9 @@ def score_row_two_notes(
                 "Pouca contração no final da puxada. Contraia mais e finalize trazendo o cotovelo mais pra trás."
             )
 
-    # 3) dica com wrist_shoulder_range (proxy do quanto a mão “viajou”)
+    # 3) wrist_shoulder_range (proxy do quanto a mão “viajou”)
     score_wrist_hint = 100.0
     if wrist_shoulder_range is not None:
-        details["wrist_shoulder_range"] = float(wrist_shoulder_range)
         score_wrist_hint = _score_from_range(
             wrist_shoulder_range,
             wrist_shoulder_range_good_min,
@@ -178,9 +171,6 @@ def score_row_two_notes(
         score_elbow = (1.0 - wrist_hint_weight) * score_elbow + wrist_hint_weight * score_wrist_hint
 
     score_elbow = float(_clamp(score_elbow, 0.0, 100.0))
-    details["score_elbow_amp"] = float(score_elbow_amp)
-    details["score_elbow_min"] = float(score_elbow_min)
-    details["score_elbow"] = float(score_elbow)
     label_elbow = _label(score_elbow)
 
     # --------------
@@ -189,7 +179,6 @@ def score_row_two_notes(
     # 1) Postura/roubo: prioriza trunk_variation. Se não existir, usa trunk_mean (fallback).
     if trunk_var is not None:
         score_trunk_posture = _score_from_max(trunk_var, trunk_var_good_max, trunk_var_falloff)
-        details["trunk_variation"] = float(trunk_var)
 
         if trunk_var > (trunk_var_good_max + trunk_var_falloff * 0.60):
             warnings_trunk.append("Roubo forte com o tronco (muito balanço). Trave o core e mantenha o tronco mais estável.")
@@ -201,7 +190,6 @@ def score_row_two_notes(
             warnings_trunk.append("Não foi possível medir o tronco (postura) (sem penalidade).")
         else:
             score_trunk_posture = _score_from_range(trunk_mean, trunk_mean_good_min, trunk_mean_good_max, trunk_mean_falloff)
-            details["trunk_mean"] = float(trunk_mean)
 
             if trunk_mean < trunk_mean_good_min:
                 warnings_trunk.append("Tronco muito inclinado (abaixo do ideal).")
@@ -214,7 +202,6 @@ def score_row_two_notes(
         warnings_trunk.append("Não foi possível medir estabilidade do tronco (sem penalidade).")
     else:
         score_trunk_stability = _score_from_max(trunk_std, trunk_std_good_max, trunk_std_falloff)
-        details["trunk_std"] = float(trunk_std)
 
         if trunk_std > (trunk_std_good_max + trunk_std_falloff * 0.60):
             warnings_trunk.append("Tronco indo e voltando demais (boneco de posto).")
@@ -226,7 +213,6 @@ def score_row_two_notes(
         score_trunk_max = 100.0
         warnings_trunk.append("Não foi possível medir o ângulo máximo do tronco (sem penalidade).")
     else:
-        details["trunk_max"] = float(trunk_max)
 
         good_max = trunk_max_target + trunk_max_tol
         score_trunk_max = _score_from_max(trunk_max, good_max, trunk_max_falloff)
@@ -235,10 +221,6 @@ def score_row_two_notes(
             warnings_trunk.append("Tronco abrindo demais no final (jogando o corpo). Trave o core e finalize sem inclinar.")
         elif trunk_max > good_max:
             warnings_trunk.append("Tronco abrindo mais que o ideal. Controle o movimento e evite compensar com o corpo.")
-
-    details["score_trunk_posture"] = float(score_trunk_posture)
-    details["score_trunk_stability"] = float(score_trunk_stability)
-    details["score_trunk_max"] = float(score_trunk_max)
 
     # Junta nota do tronco:
     # - primeiro combina postura + estabilidade (pesos internos trunk_w_posture/trunk_w_stability)
@@ -250,8 +232,6 @@ def score_row_two_notes(
     score_trunk = (w_rest * score_trunk_base) + (w_max * score_trunk_max)
     score_trunk = float(_clamp(score_trunk, 0.0, 100.0))
 
-    details["score_trunk_base"] = float(score_trunk_base)
-    details["score_trunk"] = float(score_trunk)
     label_trunk = _label(score_trunk)
 
     return ScoreResult2(
@@ -261,5 +241,4 @@ def score_row_two_notes(
         label_trunk=label_trunk,
         warnings_elbow=warnings_elbow,
         warnings_trunk=warnings_trunk,
-        details=details,
     )

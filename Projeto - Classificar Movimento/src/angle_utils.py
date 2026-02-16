@@ -56,8 +56,7 @@ def angle_3points(a: Point2D, b: Point2D, c: Point2D,) -> Optional[float]:
 def angular_variation(angles: Iterable[float]) -> float:
     angles_list = list(angles)
     if not angles_list:
-        raise ValueError(
-            "Lista de ângulos vazia. Não é possível calcular variação.")
+        raise ValueError("Lista de ângulos vazia. Não é possível calcular variação.")
 
     min_a = min(angles_list)
     max_a = max(angles_list)

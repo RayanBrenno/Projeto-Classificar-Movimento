@@ -17,9 +17,6 @@ class SeriesResult:
 # Suavização de séries temporais (média móvel simples), Mediapipe pode tremer um pouco. Isso ajuda a reduzir ruído e melhorar métricas. Mantém None quando não há dados suficientes.
 def moving_average(values: List[Optional[float]], window: int = 5) -> List[Optional[float]]:
 
-    if window <= 1:
-        return values[:]
-
     half = window // 2
     out: List[Optional[float]] = []
 
@@ -96,8 +93,9 @@ def compute_series_from_landmarks(frames: List[LandmarkFrame], *, smooth_window:
 
 
 def compute_global_metrics(series: SeriesResult) -> Dict[str, Optional[float]]:
-    elbow_vals = [v for v in series.elbow_angle_deg if v is not None]
-    trunk_vals = [v for v in series.trunk_angle_deg if v is not None]
+    # Garante que só calcula métricas com valores válidos, ignora frames sem dados
+    elbow_vals = [v for v in series.elbow_angle_deg if v is not None] 
+    trunk_vals = [v for v in series.trunk_angle_deg if v is not None] 
     ws_vals = [v for v in series.wrist_to_shoulder_dist if v is not None]
 
     elbow_min, elbow_max, elbow_amp = _min_max_amp(elbow_vals)

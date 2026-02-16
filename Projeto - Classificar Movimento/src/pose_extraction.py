@@ -65,7 +65,7 @@ def extract_landmarks_from_video(*, video_path: str, side: str = "right", visibi
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH) or 0)
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 0)
 
-    # Preparar writer do vídeo anotado (se quiser)
+    # Preparar writer do vídeo anotado
     out_writer = None
     if save_annotated_video:
         if not annotated_video_path:
@@ -151,16 +151,11 @@ def extract_landmarks_from_video(*, video_path: str, side: str = "right", visibi
                 lm_hip = lms[idx_hip]
                 lm_knee = lms[idx_knee]
 
-            p_shoulder = _landmark_to_point2d(
-                lm_shoulder, visibility_threshold=config.visibility_threshold)
-            p_elbow = _landmark_to_point2d(
-                lm_elbow, visibility_threshold=config.visibility_threshold)
-            p_wrist = _landmark_to_point2d(
-                lm_wrist, visibility_threshold=config.visibility_threshold)
-            p_hip = _landmark_to_point2d(
-                lm_hip, visibility_threshold=config.visibility_threshold)
-            p_knee = _landmark_to_point2d(
-                lm_knee, visibility_threshold=config.visibility_threshold)
+            p_shoulder = _landmark_to_point2d(lm_shoulder, visibility_threshold=config.visibility_threshold)
+            p_elbow = _landmark_to_point2d(lm_elbow, visibility_threshold=config.visibility_threshold)
+            p_wrist = _landmark_to_point2d(lm_wrist, visibility_threshold=config.visibility_threshold)
+            p_hip = _landmark_to_point2d(lm_hip, visibility_threshold=config.visibility_threshold)
+            p_knee = _landmark_to_point2d(lm_knee, visibility_threshold=config.visibility_threshold)
 
             frame_dict: LandmarkFrame = {
                 "shoulder": p_shoulder,
