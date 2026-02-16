@@ -3,19 +3,24 @@ from metrics import compute_series_from_landmarks, compute_global_metrics
 from scoring import score_row_two_notes
 
 
-video_path = "data/raw/erradoE.mp4"
+video_path = "data/raw/certoE.mp4"
 
 frames = extract_landmarks_from_video(
     video_path=video_path,
     side="left",
     visibility_threshold=0.5,
     save_csv=True,
-    csv_path="outputs/landmarks_erradoE.csv",
+    csv_path="outputs/landmarks_certoE.csv",
     save_annotated_video=True,
-    annotated_video_path="outputs/erradoE.mp4"
+    annotated_video_path="outputs/certoE.mp4"
 )
 
 series = compute_series_from_landmarks(frames, smooth_window=5)
+
+# print(series.elbow_angle_deg, "\n", len(series.elbow_angle_deg))
+# print(series.trunk_angle_deg, "\n", len(series.trunk_angle_deg))
+# print(series.wrist_to_shoulder_dist, "\n", len(series.wrist_to_shoulder_dist))
+
 gm = compute_global_metrics(series)
 result = score_row_two_notes(gm)
 print("\n")
