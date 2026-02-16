@@ -1,12 +1,18 @@
 # Classificação do Movimento – Remada Baixa
 
-## Descrição
+## Visão Geral
 
-Sistema de classificação automática do movimento de remada baixa utilizando visão computacional com MediaPipe Pose.
+Sistema de classificação automática da execução da remada baixa usando visão computacional (MediaPipe Pose).
 
-O projeto analisa vídeos do exercício, extrai landmarks corporais e calcula métricas biomecânicas relacionadas principalmente ao cotovelo e ao tronco, gerando notas e feedbacks automáticos sobre a execução do movimento.
+O projeto processa vídeos do exercício, extrai landmarks corporais quadro a quadro e calcula métricas biomecânicas focadas principalmente em cotovelo e tronco, gerando:
 
-A proposta é transformar a avaliação visual subjetiva da remada baixa em uma análise técnica baseada em dados.
+- Notas quantitativas (0 a 100)
+
+- Classificação qualitativa (ok / médio / ruim)
+
+- Feedbacks técnicos automáticos (alertas e sugestões)
+
+A proposta é transformar a avaliação visual subjetiva do movimento em uma análise técnica baseada em dados, com uma pipeline modular e extensível para outros exercícios.
 
 ---
 
@@ -15,11 +21,32 @@ A proposta é transformar a avaliação visual subjetiva da remada baixa em uma 
 Desenvolver um sistema capaz de avaliar a execução da remada baixa de forma objetiva, considerando:
 
 - Amplitude do movimento do cotovelo
+
 - Estabilidade durante a execução
+
 - Controle do tronco
+
 - Inclinação excessiva ou compensações
 
 O objetivo principal é fornecer uma nota quantitativa e feedback técnico que auxiliem na correção da execução do exercício.
+
+---
+
+## Arquitetura do Projeto
+
+O projeto foi estruturado de forma modular, separando responsabilidades para facilitar manutenção e evolução:
+
+- Extração (MediaPipe Pose): leitura do vídeo + landmarks
+
+- Séries temporais: transformação dos landmarks em séries relevantes
+
+- Métricas biomecânicas: cálculo de ângulos, variações e estabilidade
+
+- Scoring: geração de nota e feedback com base em faixas ideais
+
+- Saídas: CSV + vídeo anotado + resultado final
+
+Essa organização permite adaptar o pipeline para outros movimentos no futuro (ex: puxada, supino, agachamento).
 
 ---
 
@@ -36,11 +63,11 @@ Recomenda-se utilizar ambiente virtual (`venv`) para evitar conflitos de depend�
 
 No terminal, dentro da pasta do projeto (raiz):
 
-Criar o ambiente virtual -> py -3.11 -m venv .venv
+- Criar o ambiente virtual -> py -3.11 -m venv .venv
 
-Ativar o ambiente -> .venv\Scripts\activate
+- Ativar o ambiente -> .venv\Scripts\activate
 
-Executar o projeto -> python src/main.py
+- Executar o projeto -> python src/main.py
 
 ---
 
@@ -65,3 +92,15 @@ O sistema segue o seguinte fluxo:
    - Arquivo CSV com as coordenadas normalizadas (x, y) dos landmarks ao longo do tempo
 
 O resultado final é uma avaliação automatizada da execução da remada baixa, baseada em métricas objetivas.
+
+---
+
+## Saídas Geradas
+
+O pipeline pode produzir:
+
+- outputs/*.csv → coordenadas normalizadas (x, y) por frame
+
+- outputs/*.mp4 → vídeo anotado com landmarks
+
+- logs/prints → notas e feedback do moviment
