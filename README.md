@@ -52,8 +52,8 @@ Essa organização permite adaptar o pipeline para outros movimentos no futuro (
 
 ## Requisitos Fundamentais
 
-- Python 3.11 https://www.python.org/downloads/windows/
-- mediapipe 0.10.14 (pip install -r requirements.txt)
+- Python 3.11 
+- mediapipe 0.10.14 
 
 Recomenda-se utilizar ambiente virtual (`venv`) para evitar conflitos de dependência.
 
@@ -63,9 +63,11 @@ Recomenda-se utilizar ambiente virtual (`venv`) para evitar conflitos de depend�
 
 No terminal, dentro da pasta do projeto (raiz):
 
-- Criar o ambiente virtual -> py -3.11 -m venv .venv
+- Criar o ambiente virtual -> py -3.11 -m venv venv
 
-- Ativar o ambiente -> .venv\Scripts\activate
+- Ativar o ambiente -> venv\Scripts\activate | source venv/bin/activate
+
+- Instalar bibliotecas -> pip install -r requirements.txt
 
 - Executar o projeto -> python src/main.py
 
