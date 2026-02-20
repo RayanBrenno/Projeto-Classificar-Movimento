@@ -1,2 +1,13 @@
+# Virtual environment
+.venv/
 venv/
-*.pyc
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# VSCode local settings
+.vscode/
+
+# Dados gerados / outputs
+outputs/
